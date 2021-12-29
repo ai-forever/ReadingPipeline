@@ -1,4 +1,5 @@
 import numpy as np
+from shapely.geometry import Polygon
 
 
 def get_accuracy(y_true, y_pred):
@@ -66,3 +67,15 @@ def iou_bbox(boxA, boxB):
     iou = interArea / float(boxAArea + boxBArea - interArea)
     # return the intersection over union value
     return iou
+
+
+def iou_polygon(polygon1, polygon2):
+    polygon1 = Polygon(polygon1)
+    polygon2 = Polygon(polygon2)
+    if polygon1.is_valid and polygon2.is_valid:
+        intersect = polygon1.intersection(polygon2).area
+        union = polygon1.union(polygon2).area
+        iou = intersect / union
+        return iou
+    else:
+        return 0
