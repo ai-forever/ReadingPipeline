@@ -17,3 +17,9 @@ Also you can install the necessary python packages via [requirements.txt](requir
 - `sudo make all` to build a docker image and create a container.
   Or `sudo make all GPUS=device=0 CPUS=10` if you want to specify gpu devices and limit CPU-resources.
 
+## Inference
+
+An example of using the model can be found in [inference_pipeline.ipynb](scripts/inference_pipeline.ipynb).
+
+To evaluate the accuracy of text recognition (OCR prediction when combined with segmentation model), you can use [evaluate](scripts/evaluate.py) script (you first need to generate model predictions, an example in [inference_pipeline_on_dataset.ipynb](scripts/inference_pipeline_on_dataset.ipynb)).
+
