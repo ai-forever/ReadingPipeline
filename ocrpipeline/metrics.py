@@ -69,9 +69,14 @@ def iou_bbox(boxA, boxB):
     return iou
 
 
-def iou_polygon(polygon1, polygon2):
+def iou_polygon(polygon1, polygon2, fix_polygons=True):
     polygon1 = Polygon(polygon1)
     polygon2 = Polygon(polygon2)
+    if fix_polygons:
+        if not polygon1.is_valid:
+            polygon1 = polygon1.buffer(0)
+        if not polygon2.is_valid:
+            polygon2 = polygon2.buffer(0)
     if polygon1.is_valid and polygon2.is_valid:
         intersect = polygon1.intersection(polygon2).area
         union = polygon1.union(polygon2).area

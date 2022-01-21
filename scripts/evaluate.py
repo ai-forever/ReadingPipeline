@@ -93,7 +93,7 @@ def evaluate_pipeline(
             {
                 "predictions": [
                     {
-                        "polygon": list,  # the coordinates of the polygon
+                        "polygon": list,  # the coordinates of the polygon [ [x1,y1], [x2,y2], ..., [xN,yN] ]
                         "text": str  # predicted text
                     },
                     ...
@@ -148,10 +148,7 @@ def evaluate_pipeline(
 
         # to penalty false positive prediction, that were not matched with gt
         for prediction in pred_data['predictions']:
-            if (
-                prediction.get('matched') is None
-                and prediction['text']  # ignore empty prediction
-            ):
+            if prediction.get('matched') is None:
                 pred_texts.append(prediction['text'])
                 texts_from_image.append('')
 
