@@ -17,6 +17,31 @@ Also you can install the necessary python packages via [requirements.txt](requir
 - `sudo make all` to build a docker image and create a container.
   Or `sudo make all GPUS=device=0 CPUS=10` if you want to specify gpu devices and limit CPU-resources.
 
+## Configuring the model
+
+You can change the [pipeline_config.json](scripts/pipeline_config.json) (or make a copy of the file). In the config you can find the postprocessing parameters.
+
+### Class specific parameters
+
+Parameters in the "classes"-dict are set individually for each class. The number of classes and their names must correspond to the prediction classes of the segmentation model.
+
+```
+{
+    "classes": {
+        "pupil_text": {
+            "postprocess": {
+                "upscale_bbox": [1.4, 2.3]
+            }
+        },
+		...
+    }
+}
+```
+
+Postprocessing settings:
+
+- `upscale_bbox` - Tuple of (x, y) upscale parameters of the predicted bbox to increase it and capture large areas of the image.
+
 ## Inference
 
 An example of using the model can be found in [inference_pipeline.ipynb](scripts/inference_pipeline.ipynb).
