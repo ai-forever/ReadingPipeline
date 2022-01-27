@@ -1,0 +1,14 @@
+{
+    "classes": {
+        "shrinked_pupil_text": {
+            "postprocess": {
+                "upscale_bbox": [1.4, 2.3]
+            }
+        },
+        "shrinked_comments": {
+            "postprocess": {
+                "upscale_bbox": [1.4, 2.3]
+            }
+        }
+    }
+}
