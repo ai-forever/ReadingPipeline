@@ -14,11 +14,10 @@ def get_image_visualization(img, pred_data, fontpath, font_koef=50):
     draw = ImageDraw.Draw(empty_img)
 
     for prediction in pred_data['predictions']:
-        bbox = prediction['bbox']
+        contour = prediction['polygon']
         pred_text = prediction['text']
-        cv2.rectangle(
-            img, (bbox[0], bbox[1]), (bbox[2], bbox[3]), (255, 0, 0), 1)
-        draw.text((bbox[0], bbox[1]), pred_text, fill=0, font=font)
+        cv2.drawContours(img, np.array([contour]), -1, (0, 255, 0), 2)
+        draw.text(min(contour), pred_text, fill=0, font=font)
 
     vis_img = np.array(empty_img)
     vis = np.concatenate((img, vis_img), axis=1)
