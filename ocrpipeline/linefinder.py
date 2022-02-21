@@ -1,9 +1,10 @@
 import numpy as np
-from shapely.geometry import Polygon
 from shapely.ops import nearest_points
 from sklearn.cluster import KMeans
 import cv2
 import math
+
+from ocrpipeline.metrics import contour2shapely
 
 
 def add_polygon_center(pred_img):
@@ -28,7 +29,7 @@ def is_page_switched(cluster_centers):
     return False
 
 
-def is_two_pages(cluster_centers, img_w, max_diff=.25):
+def is_two_pages(cluster_centers, img_w, max_diff=.4):
     """Check if there are two pages on the image by comparing distance
     between K-means clusters of the image lines.
     """
@@ -101,36 +102,24 @@ def get_polygons_distance(polygon1, polygon2):
         polygon1 (shapely.Polygon): The first polygon.
         polygon2 (shapely.Polygon): The second polygon.
     """
-    if polygon1.is_valid and polygon2.is_valid:
+    if polygon1 is not None and polygon2 is not None:
         return polygon1.distance(polygon2)
     return None
 
 
-def get_polygons_closest_points(polygon1, polygon2, to_shapely=True):
+def get_polygons_closest_points(contour1, contour2):
     """Get closest points between two polygons.
 
     Args:
-        polygon1 (shapely.Polygon or list of [x, y]): The first polygon.
-        polygon2 (shapely.Polygon or list of [x, y]): The second polygon.
-        to_shapely (boolean): To convert input polygons to the shapley.Polygon.
-            Default is True.
+        polygon1 (list of [x, y]): The first contour.
+        polygon2 (list of [x, y]): The second contour.
     """
-    if to_shapely:
-        polygon1 = contour2shapely(polygon1)
-        polygon2 = contour2shapely(polygon2)
-    if polygon1.is_valid and polygon2.is_valid:
+    polygon1 = contour2shapely(contour1)
+    polygon2 = contour2shapely(contour2)
+    if polygon1 is not None and polygon2 is not None:
         return [(geom.xy[0][0], geom.xy[1][0])
                 for geom in nearest_points(polygon1, polygon2)]
     return None
-
-
-def contour2shapely(contour, fix_polygons=True):
-    """Convert contours (list of [x, y]) to the shapley.Polygon."""
-    polygon = Polygon(contour)
-    if fix_polygons:
-        if not polygon.is_valid:
-            polygon = polygon.buffer(0)
-    return polygon
 
 
 def get_idx_of_line_closest_to_word(word_contour, pred_img, line_class_names):
@@ -194,8 +183,8 @@ def add_line_idx_for_words(pred_img, line_class_names, word_class_names):
                     prediction['line_idx'] = line_idx
                 else:
                     line2word_closest_points = get_polygons_closest_points(
-                        polygon1=pred_img['predictions'][idx]['polygon'],
-                        polygon2=prediction['polygon']
+                        contour1=pred_img['predictions'][idx]['polygon'],
+                        contour2=prediction['polygon']
                     )
                     if is_word_above_line(
                         line2word_closest_points[0],

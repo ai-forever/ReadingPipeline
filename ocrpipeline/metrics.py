@@ -69,15 +69,19 @@ def iou_bbox(boxA, boxB):
     return iou
 
 
-def iou_polygon(polygon1, polygon2, fix_polygons=True):
-    polygon1 = Polygon(polygon1)
-    polygon2 = Polygon(polygon2)
+def contour2shapely(contour, fix_polygons=True):
+    """Convert contours (list of [x, y]) to the shapley.Polygon."""
+    polygon = Polygon(contour)
     if fix_polygons:
-        if not polygon1.is_valid:
-            polygon1 = polygon1.buffer(0)
-        if not polygon2.is_valid:
-            polygon2 = polygon2.buffer(0)
-    if polygon1.is_valid and polygon2.is_valid:
+        if not polygon.is_valid:
+            polygon = polygon.buffer(0)
+    if polygon.is_valid:
+        return polygon
+    return None
+
+
+def iou_polygon(polygon1, polygon2):
+    if polygon1 is not None and polygon2 is not None:
         intersect = polygon1.intersection(polygon2).area
         union = polygon1.union(polygon2).area
         iou = intersect / union

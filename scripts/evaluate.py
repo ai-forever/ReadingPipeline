@@ -5,7 +5,9 @@ from tqdm import tqdm
 import numpy as np
 
 from ocrpipeline.utils import AverageMeter
-from ocrpipeline.metrics import get_accuracy, cer, wer, iou_bbox, iou_polygon
+from ocrpipeline.metrics import (
+    contour2shapely, get_accuracy, cer, wer, iou_bbox, iou_polygon
+)
 
 
 def numbers2coords(list_of_numbers):
@@ -54,15 +56,17 @@ def get_pred_text_for_gt_polygon(gt_polygon, pred_data, evaluate_by_bbox):
     pred_text_for_gt_bbox = ''
     matching_idx = None
     gt_bbox = polygon2bbox(gt_polygon)
+    gt_polygon = contour2shapely(gt_polygon)
     for idx, prediction in enumerate(pred_data['predictions']):
         if prediction.get('matched') is None:
             polygon = prediction['polygon']
+            shapely_polygon = prediction['shapely_polygon']
             pred_text = prediction['text']
             if evaluate_by_bbox:
                 bbox = polygon2bbox(polygon)
                 iou = iou_bbox(gt_bbox, bbox)
             else:
-                iou = iou_polygon(gt_polygon, polygon)
+                iou = iou_polygon(gt_polygon, shapely_polygon)
 
             if iou > max_iou:
                 max_iou = iou
@@ -139,6 +143,10 @@ def evaluate_pipeline(
             pred_data = json.load(f)
 
         # find predicted text for each ground true polygon
+        for prediction in pred_data["predictions"]:
+            polygon = prediction["polygon"]
+            prediction["shapely_polygon"] = contour2shapely(polygon)
+
         pred_texts = []
         for gt_polygon in polygons_from_image:
             pred_texts.append(
