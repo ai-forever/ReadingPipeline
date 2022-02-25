@@ -6,7 +6,7 @@ import numpy as np
 
 from ocrpipeline.utils import AverageMeter
 from ocrpipeline.metrics import (
-    contour2shapely, get_accuracy, cer, wer, iou_bbox, iou_polygon
+    contour2shapely, get_accuracy, cer, wer, iou_polygon
 )
 
 
@@ -34,9 +34,20 @@ def polygon2bbox(polygon):
     return int(x_min), int(y_min), int(x_max), int(y_max)
 
 
-def get_data_from_image(data, image_id, category_ids):
+def class_names2id(class_names, data):
+    """Match class names to categoty ids using annotation in COCO format."""
+    category_ids = []
+    for class_name in class_names:
+        for category_info in data['categories']:
+            if category_info['name'] == class_name:
+                category_ids.append(category_info['id'])
+    return category_ids
+
+
+def get_data_from_image(data, image_id, class_names):
     texts = []
     polygons = []
+    category_ids = class_names2id(class_names, data)
     for idx, data_ann in enumerate(data['annotations']):
         if (
             data_ann['image_id'] == image_id
@@ -51,22 +62,16 @@ def get_data_from_image(data, image_id, category_ids):
     return texts, polygons
 
 
-def get_pred_text_for_gt_polygon(gt_polygon, pred_data, evaluate_by_bbox):
+def get_pred_text_for_gt_polygon(gt_polygon, pred_data):
     max_iou = 0
     pred_text_for_gt_bbox = ''
     matching_idx = None
-    gt_bbox = polygon2bbox(gt_polygon)
     gt_polygon = contour2shapely(gt_polygon)
     for idx, prediction in enumerate(pred_data['predictions']):
         if prediction.get('matched') is None:
-            polygon = prediction['polygon']
             shapely_polygon = prediction['shapely_polygon']
             pred_text = prediction['text']
-            if evaluate_by_bbox:
-                bbox = polygon2bbox(polygon)
-                iou = iou_bbox(gt_bbox, bbox)
-            else:
-                iou = iou_polygon(gt_polygon, shapely_polygon)
+            iou = iou_polygon(gt_polygon, shapely_polygon)
 
             if iou > max_iou:
                 max_iou = iou
@@ -79,8 +84,28 @@ def get_pred_text_for_gt_polygon(gt_polygon, pred_data, evaluate_by_bbox):
     return pred_text_for_gt_bbox
 
 
+def get_pred_data(img_name, pred_jsons_dir, pred_class_names):
+    pred_json_name = os.path.splitext(img_name)[0] + '.json'
+    pred_json_path = os.path.join(pred_jsons_dir, pred_json_name)
+    with open(pred_json_path, 'r') as f:
+        all_pred_data = json.load(f)
+
+    # get prediction of only certain classes
+    pred_data = {}
+    pred_data["predictions"] = []
+    for prediction in all_pred_data["predictions"]:
+        if prediction['class_name'] in pred_class_names:
+            pred_data["predictions"].append(prediction)
+
+    # convert contour to shapley polygon
+    for prediction in pred_data["predictions"]:
+        polygon = prediction["polygon"]
+        prediction["shapely_polygon"] = contour2shapely(polygon)
+    return pred_data
+
+
 def evaluate_pipeline(
-    annotation_json_path, category_ids, pred_jsons_dir, evaluate_by_bbox
+    annotation_json_path, ann_class_names, pred_class_names, pred_jsons_dir,
 ):
     """
     Calculate the evaluation metric for the pipeline by matching the
@@ -88,9 +113,10 @@ def evaluate_pipeline(
     comparing the predicted OCR texts and the gt texts.
 
     Args:
-        category_ids (list of inst): a list with category indexes.
-        evaluate_by_bbox (bool): To evaluate prediction by bbox. If False -
-            evaluation by polygons.
+        ann_class_names (list of inst): A list of class names from
+            annotation.json to evaluate.
+        pred_class_names (list of str): A list of class names from prediction
+            to evaluate.
         pred_jsons_dir (str): Path to folder with predicted json for each image.
             Each json should have name of the image from annotation_json_path
             and have format like this:
@@ -135,23 +161,15 @@ def evaluate_pipeline(
         image_id = data_img['id']
 
         texts_from_image, polygons_from_image = \
-            get_data_from_image(data, image_id, category_ids)
+            get_data_from_image(data, image_id, ann_class_names)
 
-        pred_json_name = os.path.splitext(img_name)[0] + '.json'
-        pred_json_path = os.path.join(pred_jsons_dir, pred_json_name)
-        with open(pred_json_path, 'r') as f:
-            pred_data = json.load(f)
+        pred_data = get_pred_data(img_name, pred_jsons_dir, pred_class_names)
 
         # find predicted text for each ground true polygon
-        for prediction in pred_data["predictions"]:
-            polygon = prediction["polygon"]
-            prediction["shapely_polygon"] = contour2shapely(polygon)
-
         pred_texts = []
         for gt_polygon in polygons_from_image:
             pred_texts.append(
-                get_pred_text_for_gt_polygon(
-                    gt_polygon, pred_data, evaluate_by_bbox)
+                get_pred_text_for_gt_polygon(gt_polygon, pred_data)
             )
 
         # to penalty false positive prediction, that were not matched with gt
@@ -175,14 +193,14 @@ if __name__ == '__main__':
     parser.add_argument('--annotation_json_path', type=str, required=True,
                         help='Path to json with segmentation dataset'
                         'annotation in COCO format.')
-    parser.add_argument('--category_ids', nargs='+', type=int, required=True,
+    parser.add_argument('--ann_class_names', nargs='+', type=str, required=True,
                         help='Category indexes (separated by spaces) from '
-                        'annotation_json_path for evaluation.')
+                        'annotation.json for evaluation.')
+    parser.add_argument('--pred_class_names', nargs='+', type=str, required=True,
+                        help='Class name from prediciton json for evaluation.')
     parser.add_argument('--pred_jsons_dir', type=str, required=True,
                         help='Path to folder with predicted json for each image.')
-    parser.add_argument('--evaluate_by_bbox', action='store_true',
-                        help='To evaluate prediction by bbox.')
     args = parser.parse_args()
 
-    evaluate_pipeline(args.annotation_json_path, args.category_ids,
-                      args.pred_jsons_dir, args.evaluate_by_bbox)
+    evaluate_pipeline(args.annotation_json_path, args.ann_class_names,
+                      args.pred_class_names, args.pred_jsons_dir)
