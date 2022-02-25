@@ -1,7 +1,8 @@
-{   "main_process": {
+{
+    "main_process": {
         "SegmPrediction": {
-            "model_path": "segm_model.ckpt",
-            "config_path": "segm_config.json",
+            "model_path": "",
+            "config_path": "",
             "device": "cuda"
         },
         "RestoreImageAngle": {
@@ -9,8 +10,8 @@
         },
         "ClassContourPosptrocess": {},
         "OCRPrediction": {
-            "model_path": "ocr_model.ckpt",
-            "config_path": "ocr_config.json",
+            "model_path": "",
+            "config_path": "",
             "classes_to_ocr": ["shrinked_pupil_text", "shrinked_comments"],
             "device": "cuda"
         }
