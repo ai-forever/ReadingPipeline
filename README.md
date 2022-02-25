@@ -41,7 +41,7 @@ PipelinePredictor - the class responsible for assembling the pipeline, and is lo
 
 Parameters in the classes-dict are set individually for each class. The names of the classes must correspond to the prediction class names of the segmentation model.
 
-The contour_posprocess-dict defines the processing order for the contours, predicted by the segmentation model. Processing operations are called one after another for each class separately in the order defined in the contour_posptrocess-dict.
+The contour_posprocess-dict defines the order of the contour processing, predicted by the segmentation model. Classes are initialized with the parameters specified in the config, and are called one after the other in the order that is defined in the config.
 
 ClassContourPosptrocess is the class responsible for assembling and calling contour_posptrocess methods, and is located in [ocrpipeline/predictor.py](ocrpipeline/predictor.py). To add a new class to the pipeline, you need to add it to the `CONTOUR_PROCESS_DICT` dictionary in [ocrpipeline/predictor.py](ocrpipeline/predictor.py) and also specify it in the contour_posprocess-dict in the config at the point in the chain in which the class should be called.
 
