@@ -30,7 +30,7 @@ PipelinePredictor - the class responsible for assembling the pipeline, and is lo
 
 ```
 "main_process": {
-		"SegmPrediction": {...},
+    "SegmPrediction": {...},
     "RestoreImageAngle": {...},
     "ClassContourPosptrocess": {...},
     "OCRPrediction": {...},
@@ -47,13 +47,13 @@ ClassContourPosptrocess is the class responsible for assembling and calling cont
 
 ```
 "classes": {
-		"shrinked_pupil_text": {
-				"contour_posptrocess": {
-						"BboxFromContour": {},
+    "shrinked_pupil_text": {
+        "contour_posptrocess": {
+            "BboxFromContour": {},
             "UpscaleBbox": {"upscale_bbox": [1.4, 2.3]}
         }
     },
-		...
+	...
 }
 ```
 
