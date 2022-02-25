@@ -1,4 +1,4 @@
-# Pipeline of segmentation and OCR model
+# Pipeline of segmentation and OCR models
 
 ## Quick setup and start
 
@@ -12,6 +12,7 @@ Also you can install the necessary python packages via [requirements.txt](requir
 ### Preparations
 
 - Clone the repo.
+- cd OCR-pipeline/
 - Clone the [SEGM-model](https://github.com/sberbank-ai/SEGM-model) and [OCR-model](https://github.com/sberbank-ai/OCR-model) to the OCR-pipeline folder.
 - Download weights and config-files of segmentation and OCR models to the `data/` folder.
 - `sudo make all` to build a docker image and create a container.
@@ -19,28 +20,42 @@ Also you can install the necessary python packages via [requirements.txt](requir
 
 ## Configuring the model
 
-You can change the [pipeline_config.json](scripts/pipeline_config.json) (or make a copy of the file). In the config you can find the postprocessing parameters.
+You can change parameters of the pipeline in the [pipeline_config.json](scripts/pipeline_config.json) (or make a copy of the file).
 
-### Class specific parameters
+### Main pipeline loop
 
-Parameters in the "classes"-dict are set individually for each class. The number of classes and their names must correspond to the prediction classes of the segmentation model.
+The main_process-dict defines the order of the main processing methods and models that make up the pipeline loop. Classes are initialized with the parameters specified in the config, and are called one after the other in the order that is defined in the config.
+
+PipelinePredictor - the class responsible for assembling the pipeline, and is located in [ocrpipeline/predictor.py](ocrpipeline/predictor.py). To add a new class to the pipeline, you need to add it to the `MAIN_PROCESS_DICT` dictionary in [ocrpipeline/predictor.py](ocrpipeline/predictor.py) and also specify it in the main_process-dict in the config at the point in the chain in which the class should be called.
 
 ```
-{
-    "classes": {
-        "pupil_text": {
-            "postprocess": {
-                "upscale_bbox": [1.4, 2.3]
-            }
-        },
-		...
-    }
+"main_process": {
+		"SegmPrediction": {...},
+    "RestoreImageAngle": {...},
+    "ClassContourPosptrocess": {...},
+    "OCRPrediction": {...},
 }
 ```
 
-Postprocessing settings:
+### Class specific parameters
 
-- `upscale_bbox` - Tuple of (x, y) upscale parameters of the predicted bbox to increase it and capture large areas of the image.
+Parameters in the classes-dict are set individually for each class. The names of the classes must correspond to the prediction class names of the segmentation model.
+
+The contour_posprocess-dict defines the processing order for the contours, predicted by the segmentation model. Processing operations are called one after another for each class separately in the order defined in the contour_posptrocess-dict.
+
+ClassContourPosptrocess is the class responsible for assembling and calling contour_posptrocess methods, and is located in [ocrpipeline/predictor.py](ocrpipeline/predictor.py). To add a new class to the pipeline, you need to add it to the `CONTOUR_PROCESS_DICT` dictionary in [ocrpipeline/predictor.py](ocrpipeline/predictor.py) and also specify it in the contour_posprocess-dict in the config at the point in the chain in which the class should be called.
+
+```
+"classes": {
+		"shrinked_pupil_text": {
+				"contour_posptrocess": {
+						"BboxFromContour": {},
+            "UpscaleBbox": {"upscale_bbox": [1.4, 2.3]}
+        }
+    },
+		...
+}
+```
 
 ## Inference
 

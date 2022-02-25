@@ -1,13 +1,31 @@
-{
+{   "main_process": {
+        "SegmPrediction": {
+            "model_path": "segm_model.ckpt",
+            "config_path": "segm_config.json",
+            "device": "cuda"
+        },
+        "RestoreImageAngle": {
+            "restoring_class_names": ["shrinked_pupil_text", "shrinked_comments"]
+        },
+        "ClassContourPosptrocess": {},
+        "OCRPrediction": {
+            "model_path": "ocr_model.ckpt",
+            "config_path": "ocr_config.json",
+            "classes_to_ocr": ["shrinked_pupil_text", "shrinked_comments"],
+            "device": "cuda"
+        }
+    },
     "classes": {
         "shrinked_pupil_text": {
-            "postprocess": {
-                "upscale_bbox": [1.4, 2.3]
+            "contour_posptrocess": {
+                "BboxFromContour": {},
+                "UpscaleBbox": {"upscale_bbox": [1.4, 2.3]}
             }
         },
         "shrinked_comments": {
-            "postprocess": {
-                "upscale_bbox": [1.4, 2.3]
+            "contour_posptrocess": {
+                "BboxFromContour": {},
+                "UpscaleBbox": {"upscale_bbox": [1.4, 2.3]}
             }
         }
     }

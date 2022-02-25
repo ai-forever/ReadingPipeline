@@ -9,17 +9,7 @@ from ocrpipeline.utils import img_crop
 from ocrpipeline.config import Config
 
 
-def get_postprocess_bbox(contour, class_params):
-    bbox = contour2bbox(contour)
-    bbox = upscale_bbox(
-        bbox=bbox,
-        upscale_x=class_params['postprocess']['upscale_bbox'][0],
-        upscale_y=class_params['postprocess']['upscale_bbox'][1]
-    )
-    return bbox
-
-
-def upscale_bbox(bbox, upscale_x=1, upscale_y=1):
+def get_upscaled_bbox(bbox, upscale_x=1, upscale_y=1):
     """Increase size of the bbox."""
     height = bbox[3] - bbox[1]
     width = bbox[2] - bbox[0]
@@ -33,6 +23,7 @@ def upscale_bbox(bbox, upscale_x=1, upscale_y=1):
 
 
 def contour2bbox(contour):
+    """Get bbox from contour."""
     x, y, w, h = cv2.boundingRect(contour)
     return (x, y, x + w, y + h)
 
@@ -49,7 +40,7 @@ def get_contours_from_mask(mask, min_area=5):
 
 
 def get_angle_between_vectors(x1, y1, x2=1, y2=0):
-    """Define angle between two vectors. Angle always positive."""
+    """Define angle between two vectors. Outpur angle always positive."""
     vector_1 = [x1, y1]
     vector_2 = [x2, y2]
     unit_vector_1 = vector_1 / np.linalg.norm(vector_1)
@@ -60,6 +51,7 @@ def get_angle_between_vectors(x1, y1, x2=1, y2=0):
 
 
 def get_angle_by_fitline(contour):
+    """Get angle of contour using cv2.fitLine."""
     vx, vy, x, y = cv2.fitLine(contour, cv2.DIST_L2, 0, 0.01, 0.01)
     angle = get_angle_between_vectors(vx[0], vy[0])
     # get_line_angle return angle between vectors always positive
@@ -70,6 +62,7 @@ def get_angle_by_fitline(contour):
 
 
 def get_angle_by_minarearect(contour):
+    """Get angle of contour using cv2.minAreaRect."""
     rect = cv2.minAreaRect(contour)
     angle = rect[2]
     # revert angles as cv2 coordinate axis starts from up right corner
@@ -120,41 +113,171 @@ def rotate_image(mat, angle):
     return rotated_mat, rotation_mat
 
 
-class PipelinePredictor:
-    def __init__(
-        self, segm_model_path, segm_config_path,
-        ocr_model_path, ocr_config_path, pipeline_config_path, device='cuda'
-    ):
-        self.config = Config(pipeline_config_path)
-        self.cls2params = self.config.get_classes()
+class SegmPrediction:
+    def __init__(self, pipeline_config, model_path, config_path, device):
         self.segm_predictor = SegmPredictor(
-            model_path=segm_model_path,
-            config_path=segm_config_path,
+            model_path=model_path,
+            config_path=config_path,
             device=device
         )
 
+    def __call__(self, image, pred_img):
+        pred_img = self.segm_predictor(image)
+        return image, pred_img
+
+
+class OCRPrediction:
+    def __init__(
+        self, pipeline_config, model_path, config_path, classes_to_ocr, device
+    ):
+        self.classes_to_ocr = classes_to_ocr
         self.ocr_predictor = OcrPredictor(
-            model_path=ocr_model_path,
-            config_path=ocr_config_path,
+            model_path=model_path,
+            config_path=config_path,
             device=device,
         )
 
-    def __call__(self, image):
-        pred_img = self.segm_predictor(image)
+    def __call__(self, image, pred_img):
+        for prediction in pred_img['predictions']:
+            if prediction['class_name'] in self.classes_to_ocr:
+                bbox = prediction['bbox']
+                crop = img_crop(image, bbox)
+                text_pred = self.ocr_predictor(crop)
+                prediction['text'] = text_pred
+        return image, pred_img
 
+
+class RestoreImageAngle:
+    """Define the angle of the image and rotates the image and contours to
+    this angle.
+
+    Args:
+        pipeline_config (ocrpipeline.config.Config): The pipeline config.json.
+        restoring_class_names (list of str):  List of class names using find
+            angle of the image.
+    """
+
+    def __init__(self, pipeline_config, restoring_class_names):
+        self.restoring_class_names = restoring_class_names
+
+    def __call__(self, image, pred_img):
         contours = []
-        class_names = []
+        restoring_contours = []
         for prediction in pred_img['predictions']:
             contour = prediction['polygon']
-            contours.append(np.array([contour]))
-            class_names.append(prediction['class_name'])
+            contour = np.array([contour])
+            contours.append(contour)
+            if prediction['class_name'] in self.restoring_class_names:
+                restoring_contours.append(contour)
 
-        angle = get_image_angle(contours)
+        angle = get_image_angle(restoring_contours)
         image, contours = rotate_image_and_contours(image, contours, -angle)
 
-        for idx, (contour, cls_name) in enumerate(zip(contours, class_names)):
-            bbox = get_postprocess_bbox(contour, self.cls2params[cls_name])
-            crop = img_crop(image, bbox)
-            text_pred = self.ocr_predictor(crop)
-            pred_img['predictions'][idx]['text'] = text_pred
-        return pred_img
+        for prediction, contour in zip(pred_img['predictions'], contours):
+            contour = [[int(i[0]), int(i[1])] for i in contour[0]]
+            prediction['rotated_polygon'] = contour
+        return image, pred_img
+
+
+class BboxFromContour:
+    def __call__(self, bbox, contour):
+        bbox = contour2bbox(np.array([contour]))
+        return bbox, contour
+
+
+class UpscaleBbox:
+    def __init__(self, upscale_bbox):
+        self.upscale_bbox = upscale_bbox
+
+    def __call__(self, bbox, contour):
+        bbox = get_upscaled_bbox(
+            bbox=bbox,
+            upscale_x=self.upscale_bbox[0],
+            upscale_y=self.upscale_bbox[1]
+        )
+        return bbox, contour
+
+
+CONTOUR_PROCESS_DICT = {
+    "BboxFromContour": BboxFromContour,
+    "UpscaleBbox": UpscaleBbox
+}
+
+
+class ClassContourPosptrocess:
+    """Class to handle postprocess functions for bboxs and contours."""
+
+    def __init__(self, pipeline_config):
+        self.class2process_funcs = {}
+        for class_name, params in pipeline_config.get_classes().items():
+            self.class2process_funcs[class_name] = []
+            for process_name, args in params['contour_posptrocess'].items():
+                self.class2process_funcs[class_name].append(
+                    CONTOUR_PROCESS_DICT[process_name](**args)
+                )
+
+    def __call__(self, image, pred_img):
+        for class_name, process_funcs in self.class2process_funcs.items():
+            for prediction in pred_img['predictions']:
+                if prediction['class_name'] == class_name:
+                    bbox = []
+                    contour = prediction['rotated_polygon']
+                    for process_func in process_funcs:
+                        bbox, contour = process_func(bbox, contour)
+                    prediction['rotated_polygon'] = contour
+                    prediction['bbox'] = bbox
+        return image, pred_img
+
+
+MAIN_PROCESS_DICT = {
+    "SegmPrediction": SegmPrediction,
+    "ClassContourPosptrocess": ClassContourPosptrocess,
+    "RestoreImageAngle": RestoreImageAngle,
+    "OCRPrediction": OCRPrediction
+}
+
+
+class PipelinePredictor:
+    """Main class to handle sub-classes which make preiction pipeline loop:
+    from segmentatino to ocr models. All pipeline sub-classes should be
+    listed in pipeline_config.json in main_process-dict.
+
+    Args:
+        pipeline_config_path (str): A path to the pipeline config.json.
+
+    Returns:
+        image (np.array): An input image or a image with the restored rotation
+            angle.
+        pred_data (dict): A result dict for the input image.
+            {
+                'image': {'height': Int, 'width': Int},
+                'predictions': [
+                    {
+                        'polygon': polygon [ [x1,y1], [x2,y2], ..., [xN,yN] ]
+                        'bbox': bbox [x_min, x_max, y_min, y_max]
+                        'class_name': str, class name of the polygon.
+                        'text': predicted text.
+                        'rotated_polygon': rotated polygon [ [x1,y1], [x2,y2], ..., [xN,yN] ]
+                    },
+                    ...
+                ]
+
+            }
+
+    """
+
+    def __init__(self, pipeline_config_path):
+        self.config = Config(pipeline_config_path)
+        self.main_process_funcs = []
+        for process_name, args in self.config.get('main_process').items():
+            self.main_process_funcs.append(
+                MAIN_PROCESS_DICT[process_name](
+                    pipeline_config=self.config,
+                    **args)
+            )
+
+    def __call__(self, image):
+        pred_img = None
+        for process_func in self.main_process_funcs:
+            image, pred_img = process_func(image, pred_img)
+        return image, pred_img

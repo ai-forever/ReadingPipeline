@@ -29,7 +29,7 @@ def is_page_switched(cluster_centers):
     return False
 
 
-def is_two_pages(cluster_centers, img_w, max_diff=.4):
+def is_two_pages(cluster_centers, img_w, max_diff=.25):
     """Check if there are two pages on the image by comparing distance
     between K-means clusters of the image lines.
     """
