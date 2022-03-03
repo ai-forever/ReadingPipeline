@@ -16,8 +16,8 @@ Also you can install the necessary python packages via [requirements.txt](requir
 - Clone the [SEGM-model](https://github.com/sberbank-ai/SEGM-model) and [OCR-model](https://github.com/sberbank-ai/OCR-model) to the OCR-pipeline folder.
 - Download weights and config-files of segmentation and OCR models to the `data/` folder.
 - `sudo make all` to build a docker image and create a container.
-  Or `sudo make all GPUS=device=0 CPUS=10` if you want to specify gpu devices and limit CPU-resources.
-- Or you can install the necessary libs yourself and add the system paths to SEGM-model and OCR-model via `sys.path.append`
+   Or `sudo make all GPUS=device=0 CPUS=10` if you want to specify gpu devices and limit CPU-resources.
+   Also you can install the necessary libs by yourself (from requirements.txt), and add the system paths to SEGM-model and OCR-model via `sys.path.append` so modules from these repos could be imported by OCR-pipeline.
 
 ## Configuring the model
 
