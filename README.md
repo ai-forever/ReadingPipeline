@@ -17,6 +17,7 @@ Also you can install the necessary python packages via [requirements.txt](requir
 - Download weights and config-files of segmentation and OCR models to the `data/` folder.
 - `sudo make all` to build a docker image and create a container.
   Or `sudo make all GPUS=device=0 CPUS=10` if you want to specify gpu devices and limit CPU-resources.
+- Or you can install the necessary libs yourself and add the system paths to SEGM-model and OCR-model via `sys.path.append`
 
 ## Configuring the model
 
