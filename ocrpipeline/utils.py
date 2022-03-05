@@ -53,13 +53,11 @@ def get_line_number_visualization(
 ):
     for prediction in pred_img['predictions']:
         contour = prediction['polygon']
-        contour_center = prediction['polygon_center']
         position_idx = prediction.get(position_name)
         if prediction['class_name'] in class_names:
             cv2.drawContours(image, np.array([contour]), -1, (0, 200, 0), 2)
-            # cv2.circle(image, contour_center, 10, (200, 0, 200), 2)
             text = f'{position_idx}'
-            image = cv2.putText(image, text, contour_center,
+            image = cv2.putText(image, text, min(contour),
                                 cv2.FONT_HERSHEY_SIMPLEX,
                                 1.75, (255, 20, 20), 3, cv2.LINE_AA)
     return image
