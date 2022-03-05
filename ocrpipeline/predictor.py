@@ -7,6 +7,10 @@ from ocr.predictor import OcrPredictor
 
 from ocrpipeline.utils import img_crop
 from ocrpipeline.config import Config
+from ocrpipeline.linefinder import (
+    add_polygon_center, add_page_idx_for_lines, add_line_idx_for_lines,
+    add_line_idx_for_words, add_column_idx_for_words
+)
 
 
 def get_upscaled_bbox(bbox, upscale_x=1, upscale_y=1):
@@ -147,6 +151,29 @@ class OCRPrediction:
         return image, pred_img
 
 
+class LineFinder:
+    """Heuristic methods to define indexes of rows, columns and pages for
+    polygons on the image.
+
+    Args:
+        line_classes (list of strs): List of line class names.
+        text_classes (list of strs): List of text class names.
+    """
+
+    def __init__(self, pipeline_config, line_classes, text_classes):
+        self.line_classes = line_classes
+        self.text_classes = text_classes
+
+    def __call__(self, image, pred_img):
+        _, img_w = image.shape[:2]
+        add_polygon_center(pred_img)
+        add_page_idx_for_lines(pred_img, self.line_classes, img_w, .25)
+        add_line_idx_for_lines(pred_img, self.line_classes)
+        add_line_idx_for_words(pred_img, self.line_classes, self.text_classes)
+        add_column_idx_for_words(pred_img, self.text_classes)
+        return image, pred_img
+
+
 class RestoreImageAngle:
     """Define the angle of the image and rotates the image and contours to
     this angle.
@@ -233,7 +260,8 @@ MAIN_PROCESS_DICT = {
     "SegmPrediction": SegmPrediction,
     "ClassContourPosptrocess": ClassContourPosptrocess,
     "RestoreImageAngle": RestoreImageAngle,
-    "OCRPrediction": OCRPrediction
+    "OCRPrediction": OCRPrediction,
+    "LineFinder": LineFinder
 }
 
 
