@@ -2,7 +2,6 @@ import numpy as np
 from shapely.ops import nearest_points
 from sklearn.cluster import KMeans
 import cv2
-import math
 
 from ocrpipeline.metrics import contour2shapely
 
@@ -33,10 +32,10 @@ def is_two_pages(cluster_centers, img_w, max_diff=.25):
     """Check if there are two pages on the image by comparing distance
     between K-means clusters of the image lines.
     """
-    center1 = cluster_centers[0]
-    center2 = cluster_centers[1]
-    dist = math.hypot(center2[0]-center1[0], center2[1]-center1[1])
-    diff_ratio = dist / img_w
+    center1 = cluster_centers[0][0]
+    center2 = cluster_centers[1][0]
+    dist = center2 - center1
+    diff_ratio = abs(dist) / img_w
     return diff_ratio >= max_diff
 
 
@@ -49,15 +48,16 @@ def add_page_idx_for_lines(pred_img, line_class_names, img_w, max_diff=.25):
         line_class_names (list): The list of line class names.
         img_w (int): The image width.
     """
-    centers = []
+    x_coords = []
     indexes = []
     for idx, prediction in enumerate(pred_img['predictions']):
         contour_center = prediction['polygon_center']
         if prediction['class_name'] in line_class_names:
-            centers.append(contour_center)
+            x_coords.append(contour_center[0])
             indexes.append(idx)
 
-    kmeans = KMeans(n_clusters=2, random_state=0).fit(np.array(centers))
+    kmeans = KMeans(n_clusters=2, random_state=0).fit(
+        np.array(x_coords).reshape(-1, 1))
     if is_two_pages(kmeans.cluster_centers_, img_w, max_diff):
         if is_page_switched(kmeans.cluster_centers_):
             page_indexes = [0 if page == 1 else 1 for page in kmeans.labels_]
