@@ -272,26 +272,6 @@ class PipelinePredictor:
 
     Args:
         pipeline_config_path (str): A path to the pipeline config.json.
-
-    Returns:
-        image (np.array): An input image or a image with the restored rotation
-            angle.
-        pred_data (dict): A result dict for the input image.
-            {
-                'image': {'height': Int, 'width': Int},
-                'predictions': [
-                    {
-                        'polygon': polygon [ [x1,y1], [x2,y2], ..., [xN,yN] ]
-                        'bbox': bbox [x_min, x_max, y_min, y_max]
-                        'class_name': str, class name of the polygon.
-                        'text': predicted text.
-                        'rotated_polygon': rotated polygon [ [x1,y1], [x2,y2], ..., [xN,yN] ]
-                    },
-                    ...
-                ]
-
-            }
-
     """
 
     def __init__(self, pipeline_config_path):
@@ -305,6 +285,29 @@ class PipelinePredictor:
             )
 
     def __call__(self, image):
+        """
+        Args:
+            image (np.array): An input image in BGR format.
+
+        Returns:
+            image (np.array): The input image or a rotated image with the
+                restored rotation angle.
+            pred_data (dict): A result dict for the input image.
+                {
+                    'image': {'height': Int, 'width': Int},
+                    'predictions': [
+                        {
+                            'polygon': polygon [ [x1,y1], [x2,y2], ..., [xN,yN] ]
+                            'bbox': bbox [x_min, x_max, y_min, y_max]
+                            'class_name': str, class name of the polygon.
+                            'text': predicted text.
+                            'rotated_polygon': rotated polygon [ [x1,y1], [x2,y2], ..., [xN,yN] ]
+                        },
+                        ...
+                    ]
+
+                }
+        """
         pred_img = None
         for process_func in self.main_process_funcs:
             image, pred_img = process_func(image, pred_img)
