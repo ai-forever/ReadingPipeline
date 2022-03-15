@@ -144,7 +144,7 @@ class OCRPrediction:
     def __call__(self, image, pred_img):
         for prediction in pred_img['predictions']:
             if prediction['class_name'] in self.classes_to_ocr:
-                bbox = prediction['bbox']
+                bbox = prediction['rotated_bbox']
                 crop = img_crop(image, bbox)
                 text_pred = self.ocr_predictor(crop)
                 prediction['text'] = text_pred
@@ -252,7 +252,7 @@ class ClassContourPosptrocess:
                     for process_func in process_funcs:
                         bbox, contour = process_func(bbox, contour)
                     prediction['rotated_polygon'] = contour
-                    prediction['bbox'] = bbox
+                    prediction['rotated_bbox'] = bbox
         return image, pred_img
 
 
@@ -290,18 +290,19 @@ class PipelinePredictor:
             image (np.array): An input image in BGR format.
 
         Returns:
-            image (np.array): The input image or a rotated image with the
-                restored rotation angle.
+            rotated_image (np.array): The input image which was rotated to
+                restore rotation angle.
             pred_data (dict): A result dict for the input image.
                 {
-                    'image': {'height': Int, 'width': Int},
+                    'image': {'height': Int, 'width': Int} params of the input image,
                     'predictions': [
                         {
-                            'polygon': polygon [ [x1,y1], [x2,y2], ..., [xN,yN] ]
-                            'bbox': bbox [x_min, x_max, y_min, y_max]
+                            'polygon': [ [x1,y1], [x2,y2], ..., [xN,yN] ] initial polygon
+                            'bbox': [x_min, y_min, x_max, y_max] initial bounding box
                             'class_name': str, class name of the polygon.
                             'text': predicted text.
-                            'rotated_polygon': rotated polygon [ [x1,y1], [x2,y2], ..., [xN,yN] ]
+                            'rotated_bbox': [x_min, x_max, y_min, y_max] processed bbox for a rotated image with the restored angle
+                            'rotated_polygon': [ [x1,y1], [x2,y2], ..., [xN,yN] ] processed polygon for a rotated image with the restored angle
                         },
                         ...
                     ]
