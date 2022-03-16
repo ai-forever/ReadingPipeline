@@ -62,7 +62,7 @@ def add_page_idx_for_lines(pred_img, line_class_names, img_w, max_diff=.25):
         if is_page_switched(kmeans.cluster_centers_):
             page_indexes = [0 if page == 1 else 1 for page in kmeans.labels_]
         else:
-            page_indexes = [page for page in kmeans.labels_]
+            page_indexes = [int(page) for page in kmeans.labels_]  # int to make json serializable
     else:  # only one page on the image
         page_indexes = [0 for i in range(len(indexes))]
 
