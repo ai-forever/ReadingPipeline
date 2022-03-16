@@ -307,8 +307,16 @@ class PipelinePredictor:
                             'bbox': [x_min, y_min, x_max, y_max] initial bounding box
                             'class_name': str, class name of the polygon.
                             'text': predicted text.
-                            'rotated_bbox': [x_min, y_min, x_max, y_max] processed bbox for a rotated image with the restored angle
-                            'rotated_polygon': [ [x1,y1], [x2,y2], ..., [xN,yN] ] processed polygon for a rotated image with the restored angle
+                            'rotated_bbox': [x_min, y_min, x_max, y_max] processed
+                                bbox for a rotated image with the restored angle
+                            'rotated_polygon': [ [x1,y1], [x2,y2], ..., [xN,yN] ]
+                                processed polygon for a rotated image with the restored angle
+                            'polygon_center': [x, y] the center of the rotated_polygon.
+                            'page_idx': int, The page index of the polygon.
+                            'line_idx': float, The line index of the polygon within page
+                                index. Fractional value for words that are between the main lines.
+                            'column_idx': int, The column index of the polygon within
+                                line index. The value exists only for text classes.
                         },
                         ...
                     ]
