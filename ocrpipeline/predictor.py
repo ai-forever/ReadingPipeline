@@ -182,10 +182,15 @@ class RestoreImageAngle:
         pipeline_config (ocrpipeline.config.Config): The pipeline config.json.
         restoring_class_names (list of str):  List of class names using find
             angle of the image.
+        min_angle_to_rotate (int): The safe range of angles within which image
+            rotation does not occur (-min_angle_to_rotate; min_angle_to_rotate)
     """
 
-    def __init__(self, pipeline_config, restoring_class_names):
+    def __init__(
+        self, pipeline_config, restoring_class_names, min_angle_to_rotate=1
+    ):
         self.restoring_class_names = restoring_class_names
+        self.min_angle_to_rotate = min_angle_to_rotate
 
     def __call__(self, image, pred_img):
         contours = []
@@ -198,7 +203,8 @@ class RestoreImageAngle:
                 restoring_contours.append(contour)
 
         angle = get_image_angle(restoring_contours)
-        image, contours = rotate_image_and_contours(image, contours, -angle)
+        if abs(angle) > self.min_angle_to_rotate:
+            image, contours = rotate_image_and_contours(image, contours, -angle)
 
         for prediction, contour in zip(pred_img['predictions'], contours):
             contour = [[int(i[0]), int(i[1])] for i in contour[0]]
