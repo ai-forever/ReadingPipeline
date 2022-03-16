@@ -5,7 +5,7 @@
             "device": "cuda"
         },
         "RestoreImageAngle": {
-            "restoring_class_names": ["shrinked_pupil_text", "shrinked_comments", "text_line"]
+            "restoring_class_names": ["text_line"]
         },
         "ClassContourPosptrocess": {},
         "OCRPrediction": {
