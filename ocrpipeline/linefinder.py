@@ -62,7 +62,8 @@ def add_page_idx_for_lines(pred_img, line_class_names, img_w, max_diff=.25):
         if is_page_switched(kmeans.cluster_centers_):
             page_indexes = [0 if page == 1 else 1 for page in kmeans.labels_]
         else:
-            page_indexes = [int(page) for page in kmeans.labels_]  # int to make json serializable
+            # int() to make json serializable # int() to make json serializable
+            page_indexes = [int(page) for page in kmeans.labels_]
     else:  # only one page on the image
         page_indexes = [0 for i in range(len(indexes))]
 
@@ -163,8 +164,7 @@ def is_word_above_line(line_center, word_center):
 def add_line_idx_for_words(pred_img, line_class_names, word_class_names):
     """Add line indexes for each word polygon in the pred_img-dict.
     The word contour must intersect with the line contour to determine the
-    line index for the word. If the word is between the lines, the line index
-    would be fractional.
+    line index for the word.
 
     Args:
         pred_img (dict): The dictionary with predictions.
@@ -175,24 +175,14 @@ def add_line_idx_for_words(pred_img, line_class_names, word_class_names):
         if prediction['class_name'] in word_class_names:
             dist, idx = get_idx_of_line_closest_to_word(
                 prediction['polygon'], pred_img, line_class_names)
-            if dist is not None:
+            if (
+                idx is not None
+                and dist == 0
+            ):
                 prediction['page_idx'] = \
                     pred_img['predictions'][idx]['page_idx']
-                line_idx = pred_img['predictions'][idx]['line_idx']
-                if dist == 0:
-                    prediction['line_idx'] = line_idx
-                else:
-                    line2word_closest_points = get_polygons_closest_points(
-                        contour1=pred_img['predictions'][idx]['polygon'],
-                        contour2=prediction['polygon']
-                    )
-                    if is_word_above_line(
-                        line2word_closest_points[0],
-                        prediction['polygon_center']
-                    ):
-                        prediction['line_idx'] = line_idx - 0.5
-                    else:
-                        prediction['line_idx'] = line_idx + 0.5
+                prediction['line_idx'] = \
+                    pred_img['predictions'][idx]['line_idx']
 
 
 def add_column_idx_for_words(pred_img, word_class_names):
@@ -289,14 +279,11 @@ def get_structured_text(pred_img, word_class_names):
             selected as output texts.
     """
     structured_text = []
-    page_indexes = get_page_indexes(pred_img)
-    for page_idx in page_indexes:
+    for page_idx in get_page_indexes(pred_img):
         structured_page = []
-        line_indexes = get_line_indexes(pred_img, page_idx)
-        for line_idx in line_indexes:
+        for line_idx in get_line_indexes(pred_img, page_idx):
             structured_line = []
-            column_indexes = get_column_indexes(pred_img, page_idx, line_idx)
-            for column_idx in column_indexes:
+            for column_idx in get_column_indexes(pred_img, page_idx, line_idx):
                 for prediction in pred_img['predictions']:
                     if (
                         prediction.get('page_idx') == page_idx
@@ -308,3 +295,26 @@ def get_structured_text(pred_img, word_class_names):
             structured_page.append(structured_line)
         structured_text.append(structured_page)
     return structured_text
+
+
+def add_word_indexes(pred_img, word_class_names):
+    """Add word indexes to pred json.
+
+    Args:
+        pred_img (dict): The dictionary with predictions with page_idx,
+            line_idx and column_idx keys.
+        word_class_names (list): The list of word class names.
+    """
+    word_idx = 0
+    for page_idx in get_page_indexes(pred_img):
+        for line_idx in get_line_indexes(pred_img, page_idx):
+            for column_idx in get_column_indexes(pred_img, page_idx, line_idx):
+                for prediction in pred_img['predictions']:
+                    if (
+                        prediction.get('page_idx') == page_idx
+                        and prediction.get('line_idx') == line_idx
+                        and prediction.get('column_idx') == column_idx
+                        and prediction['class_name'] in word_class_names
+                    ):
+                        prediction['word_idx'] = word_idx
+                        word_idx += 1

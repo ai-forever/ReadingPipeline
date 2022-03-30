@@ -9,7 +9,7 @@ from ocrpipeline.utils import img_crop
 from ocrpipeline.config import Config
 from ocrpipeline.linefinder import (
     add_polygon_center, add_page_idx_for_lines, add_line_idx_for_lines,
-    add_line_idx_for_words, add_column_idx_for_words
+    add_line_idx_for_words, add_column_idx_for_words, add_word_indexes
 )
 
 
@@ -171,6 +171,7 @@ class LineFinder:
         add_line_idx_for_lines(pred_img, self.line_classes)
         add_line_idx_for_words(pred_img, self.line_classes, self.text_classes)
         add_column_idx_for_words(pred_img, self.text_classes)
+        add_word_indexes(pred_img, self.text_classes)
         return image, pred_img
 
 
@@ -313,10 +314,13 @@ class PipelinePredictor:
                                 processed polygon for a rotated image with the restored angle
                             'polygon_center': [x, y] the center of the rotated_polygon.
                             'page_idx': int, The page index of the polygon.
-                            'line_idx': float, The line index of the polygon within page
-                                index. Fractional value for words that are between the main lines.
+                            'line_idx': int, The line index of the polygon within given page.
                             'column_idx': int, The column index of the polygon within
-                                line index. The value exists only for text classes.
+                                given line and page. The value exists only for text
+                                classes that intersect the lines.
+                            'word_idx': int, The order index of the word polygon within
+                                given line and page. The value exists only for text
+                                classes that intersect the lines.
                         },
                         ...
                     ]
