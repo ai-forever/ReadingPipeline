@@ -1,4 +1,7 @@
 {   "main_process": {
+        "ImageToBGR": {
+            "input_format": "BGR"
+        },
         "SegmPrediction": {
             "model_path": "",
             "config_path": "",

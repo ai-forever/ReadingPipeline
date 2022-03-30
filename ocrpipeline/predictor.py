@@ -263,7 +263,18 @@ class ClassContourPosptrocess:
         return image, pred_img
 
 
+class ImageToBGR:
+    def __init__(self, pipeline_config, input_format="BGR"):
+        self.input_format = input_format
+
+    def __call__(self, image, pred_img):
+        if self.input_format == "RGB":
+            image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+        return image, pred_img
+
+
 MAIN_PROCESS_DICT = {
+    "ImageToBGR": ImageToBGR,
     "SegmPrediction": SegmPrediction,
     "ClassContourPosptrocess": ClassContourPosptrocess,
     "RestoreImageAngle": RestoreImageAngle,
