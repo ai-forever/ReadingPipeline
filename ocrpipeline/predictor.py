@@ -132,12 +132,14 @@ class SegmPrediction:
 
 class OCRPrediction:
     def __init__(
-        self, pipeline_config, model_path, config_path, classes_to_ocr, device
+        self, pipeline_config, model_path, config_path, lm_path,
+        classes_to_ocr, device
     ):
         self.classes_to_ocr = classes_to_ocr
         self.ocr_predictor = OcrPredictor(
             model_path=model_path,
             config_path=config_path,
+            lm_path=lm_path,
             device=device,
         )
 
@@ -188,7 +190,7 @@ class RestoreImageAngle:
     """
 
     def __init__(
-        self, pipeline_config, restoring_class_names, min_angle_to_rotate=1
+        self, pipeline_config, restoring_class_names, min_angle_to_rotate=0.5
     ):
         self.restoring_class_names = restoring_class_names
         self.min_angle_to_rotate = min_angle_to_rotate

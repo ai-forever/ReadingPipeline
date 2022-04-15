@@ -14,6 +14,7 @@
         "OCRPrediction": {
             "model_path": "",
             "config_path": "",
+            "lm_path": "",
             "classes_to_ocr": ["shrinked_pupil_text", "shrinked_comments"],
             "device": "cuda"
         },
