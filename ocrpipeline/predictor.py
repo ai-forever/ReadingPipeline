@@ -144,12 +144,16 @@ class OCRPrediction:
         )
 
     def __call__(self, image, pred_img):
-        for prediction in pred_img['predictions']:
+        crops = []
+        indexes = []
+        for idx, prediction in enumerate(pred_img['predictions']):
             if prediction['class_name'] in self.classes_to_ocr:
                 bbox = prediction['rotated_bbox']
-                crop = img_crop(image, bbox)
-                text_pred = self.ocr_predictor(crop)
-                prediction['text'] = text_pred
+                crops.append(img_crop(image, bbox))
+                indexes.append(idx)
+        text_preds = self.ocr_predictor(crops)
+        for idx, text_pred in zip(indexes, text_preds):
+            pred_img['predictions'][idx]['text'] = text_pred
         return image, pred_img
 
 
