@@ -8,12 +8,12 @@ def img_crop(image, bbox):
 
 
 def get_image_visualization(
-    img, pred_data, fontpath, draw_contours_classes, draw_text_classes=None,
+    img, pred_data, draw_contours_classes, draw_text_classes=None,
     structured_text=None, polygon_name='polygon',
     font_koef=40
 ):
     h, w = img.shape[:2]
-    font = ImageFont.truetype(fontpath, int(h/font_koef))
+    font = ImageFont.truetype("DejaVuSans.ttf", int(h/font_koef))
     empty_img = Image.new('RGB', (w, h), (255, 255, 255))
     draw = ImageDraw.Draw(empty_img)
     if draw_text_classes is None:
