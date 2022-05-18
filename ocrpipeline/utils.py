@@ -10,7 +10,7 @@ def img_crop(image, bbox):
 def get_image_visualization(
     img, pred_data, draw_contours_classes, draw_text_classes=None,
     structured_text=None, polygon_name='polygon',
-    font_koef=40
+    font_koef=50
 ):
     h, w = img.shape[:2]
     font = ImageFont.truetype("DejaVuSans.ttf", int(h/font_koef))
