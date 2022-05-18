@@ -7,8 +7,6 @@
 
 The provided [Dockerfile](Dockerfile) is supplied to build an image with CUDA support and cuDNN.
 
-Also you can install the necessary python packages via [requirements.txt](requirements.txt)
-
 ### Preparations
 
 - Clone the repo.
@@ -17,7 +15,6 @@ Also you can install the necessary python packages via [requirements.txt](requir
 - Download weights and config-files of segmentation and OCR models to the `data/` folder.
 - `sudo make all` to build a docker image and create a container.
    Or `sudo make all GPUS=device=0 CPUS=10` if you want to specify gpu devices and limit CPU-resources.
-   Also you can install the necessary libs by yourself (from requirements.txt), and add the system paths to SEGM-model and OCR-model via `sys.path.append` so modules from these repos could be imported by OCR-pipeline.
 
 ## Configuring the model
 
