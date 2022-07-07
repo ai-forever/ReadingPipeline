@@ -21,19 +21,22 @@
         "LineFinder": {
             "line_classes": ["text_line"],
             "text_classes": ["shrinked_pupil_text", "shrinked_comments"]
-        }
+        },
+        "PrepareJSON": {}
     },
     "classes": {
         "shrinked_pupil_text": {
             "contour_posptrocess": {
                 "BboxFromContour": {},
-                "UpscaleBbox": {"upscale_bbox": [1.4, 2.3]}
+                "UpscaleBbox": {"upscale_bbox": [1.4, 2.3]},
+                "CropByBbox": {}
             }
         },
         "shrinked_comments": {
             "contour_posptrocess": {
                 "BboxFromContour": {},
-                "UpscaleBbox": {"upscale_bbox": [1.4, 2.3]}
+                "UpscaleBbox": {"upscale_bbox": [1.4, 2.3]},
+                "CropByBbox": {}
             }
         },
         "text_line": {

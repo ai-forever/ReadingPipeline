@@ -130,6 +130,20 @@ class SegmPrediction:
         return image, pred_img
 
 
+class PrepareJSON:
+    """Prepare final json to saving on disk. Remove unused subdicts.
+    """
+    def __init__(self, pipeline_config):
+        self.elements_to_remove = ['crop', 'polygon_center']
+
+    def __call__(self, image, pred_img):
+        for prediction in pred_img['predictions']:
+            for element in self.elements_to_remove:
+                if element in prediction:
+                    del prediction[element]
+        return image, pred_img
+
+
 class OCRPrediction:
     def __init__(
         self, pipeline_config, model_path, config_path, lm_path,
@@ -148,8 +162,7 @@ class OCRPrediction:
         indexes = []
         for idx, prediction in enumerate(pred_img['predictions']):
             if prediction['class_name'] in self.classes_to_ocr:
-                bbox = prediction['rotated_bbox']
-                crops.append(img_crop(image, bbox))
+                crops.append(prediction['crop'])
                 indexes.append(idx)
         text_preds = self.ocr_predictor(crops)
         for idx, text_pred in zip(indexes, text_preds):
@@ -220,27 +233,58 @@ class RestoreImageAngle:
 
 
 class BboxFromContour:
-    def __call__(self, bbox, contour):
+    def __call__(self, image, crop, bbox, contour):
         bbox = contour2bbox(np.array([contour]))
-        return bbox, contour
+        return crop, bbox, contour
+
+
+class CropByBbox:
+    def __call__(self, image, crop, bbox, contour):
+        crop = img_crop(image, bbox)
+        return crop, bbox, contour
 
 
 class UpscaleBbox:
     def __init__(self, upscale_bbox):
         self.upscale_bbox = upscale_bbox
 
-    def __call__(self, bbox, contour):
+    def __call__(self, image, crop, bbox, contour):
         bbox = get_upscaled_bbox(
             bbox=bbox,
             upscale_x=self.upscale_bbox[0],
             upscale_y=self.upscale_bbox[1]
         )
-        return bbox, contour
+        return crop, bbox, contour
+
+
+class RotateVerticalCrops:
+    """Rotate vertical text crops (e.g. text in the margins).
+
+    Args:
+        h2w_ratio (float): height to width ratio to consider text as vertival.
+        clockwise (bool): Rotate crop clockwise or counterclockwise.
+    """
+
+    def __init__(self, h2w_ratio=5, clockwise=False):
+        self.h2w_ratio = h2w_ratio
+        self.flip_code = 0
+        if clockwise:
+            self.flip_code = 1
+
+    def __call__(self, image, crop, bbox, contour):
+        h, w = crop.shape[:2]
+        if h / w >= self.h2w_ratio:
+            rotated_crop = cv2.transpose(crop)
+            rotated_crop = cv2.flip(rotated_crop, flipCode=self.flip_code)
+            return rotated_crop, bbox, contour
+        return crop, bbox, contour
 
 
 CONTOUR_PROCESS_DICT = {
     "BboxFromContour": BboxFromContour,
-    "UpscaleBbox": UpscaleBbox
+    "UpscaleBbox": UpscaleBbox,
+    "CropByBbox": CropByBbox,
+    "RotateVerticalCrops": RotateVerticalCrops
 }
 
 
@@ -257,15 +301,19 @@ class ClassContourPosptrocess:
                 )
 
     def __call__(self, image, pred_img):
-        for class_name, process_funcs in self.class2process_funcs.items():
-            for prediction in pred_img['predictions']:
-                if prediction['class_name'] == class_name:
-                    bbox = []
-                    contour = prediction['rotated_polygon']
-                    for process_func in process_funcs:
-                        bbox, contour = process_func(bbox, contour)
-                    prediction['rotated_polygon'] = contour
-                    prediction['rotated_bbox'] = bbox
+        for prediction in pred_img['predictions']:
+            if prediction['class_name'] in self.class2process_funcs:
+                process_funcs = \
+                    self.class2process_funcs[prediction['class_name']]
+                bbox = None
+                crop = None
+                contour = prediction['rotated_polygon']
+                for process_func in process_funcs:
+                    crop, bbox, contour = \
+                        process_func(image, crop, bbox, contour)
+                prediction['rotated_polygon'] = contour
+                prediction['rotated_bbox'] = bbox
+                prediction['crop'] = crop
         return image, pred_img
 
 
@@ -285,6 +333,7 @@ MAIN_PROCESS_DICT = {
     "ClassContourPosptrocess": ClassContourPosptrocess,
     "RestoreImageAngle": RestoreImageAngle,
     "OCRPrediction": OCRPrediction,
+    "PrepareJSON": PrepareJSON,
     "LineFinder": LineFinder
 }
 
@@ -329,7 +378,6 @@ class PipelinePredictor:
                                 bbox for a rotated image with the restored angle
                             'rotated_polygon': [ [x1,y1], [x2,y2], ..., [xN,yN] ]
                                 processed polygon for a rotated image with the restored angle
-                            'polygon_center': [x, y] the center of the rotated_polygon.
                             'page_idx': int, The page index of the polygon.
                             'line_idx': int, The line index of the polygon within given page.
                             'column_idx': int, The column index of the polygon within
