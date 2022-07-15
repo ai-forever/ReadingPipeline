@@ -1,6 +1,8 @@
 import cv2
 import math
 import numpy as np
+import pyclipper
+from shapely.geometry import Polygon
 
 from segm.predictor import SegmPredictor
 from ocr.predictor import OcrPredictor
@@ -11,6 +13,38 @@ from ocrpipeline.linefinder import (
     add_polygon_center, add_page_idx_for_lines, add_line_idx_for_lines,
     add_line_idx_for_words, add_column_idx_for_words, add_word_indexes
 )
+
+
+def is_valid_polygon(polygon):
+    """Check if a polygon is valid. Return True if valid and False otherwise.
+
+    Args:
+        polygon (shapely.geometry.Polygon): The polygon.
+    """
+    if (
+        polygon.length < 1
+        or polygon.area <= 0
+    ):
+        return False
+    return True
+
+
+def change_contour_size(polygon, scale_ratio=1):
+    """
+    Args:
+        polygon (np.array): Array of polygon coordinates
+            np.array([[x, y], ...])
+        scale_ratio (Float): The scale scale_ratio to change the contour.
+    """
+    poly = Polygon(polygon)
+    pco = pyclipper.PyclipperOffset()
+    pco.AddPath(polygon, pyclipper.JT_ROUND,
+                pyclipper.ET_CLOSEDPOLYGON)
+    if not is_valid_polygon(poly):
+        return None
+    distance = int(poly.area * (1 - scale_ratio ** 2) / poly.length)
+    scaled_polygons = pco.Execute(-distance)
+    return scaled_polygons
 
 
 def get_upscaled_bbox(bbox, upscale_x=1, upscale_y=1):
@@ -244,6 +278,37 @@ class CropByBbox:
         return crop, bbox, contour
 
 
+class MakeMaskedCrop:
+    """Make crop by mask: blacken area outside predicted polygon."""
+    def __call__(self, image, crop, bbox, contour):
+        pts = np.array(contour)
+        pts = pts - pts.min(axis=0)
+        mask = np.zeros(crop.shape[:2], np.uint8)
+        cv2.drawContours(mask, [pts], -1, (255, 255, 255), -1, cv2.LINE_AA)
+        crop = cv2.bitwise_and(crop, crop, mask=mask)
+        return crop, bbox, contour
+
+
+class UpscaleContour:
+    """Upscale contour as it could have been shrinked during segmentation
+    training.
+    """
+    def __init__(self, upscale_contour):
+        self.upscale_contour = upscale_contour
+
+    def __call__(self, image, crop, bbox, contour):
+        upscaled_contour = \
+            change_contour_size(contour, self.upscale_contour)
+        if upscaled_contour is None:
+            return crop, bbox, contour
+        # take zero contour (when upscaling only one contour could be returned)
+        upscaled_contour = upscaled_contour[0]
+        # coords shouldn't be outside image after upscaling
+        upscaled_contour = [[max(0, i[0]), max(0, i[1])]
+                            for i in upscaled_contour]
+        return crop, bbox, upscaled_contour
+
+
 class UpscaleBbox:
     def __init__(self, upscale_bbox):
         self.upscale_bbox = upscale_bbox
@@ -284,7 +349,9 @@ CONTOUR_PROCESS_DICT = {
     "BboxFromContour": BboxFromContour,
     "UpscaleBbox": UpscaleBbox,
     "CropByBbox": CropByBbox,
-    "RotateVerticalCrops": RotateVerticalCrops
+    "RotateVerticalCrops": RotateVerticalCrops,
+    "UpscaleContour": UpscaleContour,
+    "MakeMaskedCrop": MakeMaskedCrop
 }
 
 
