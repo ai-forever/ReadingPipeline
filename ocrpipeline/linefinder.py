@@ -39,7 +39,9 @@ def is_two_pages(cluster_centers, img_w, max_diff=.25):
     return diff_ratio >= max_diff
 
 
-def add_page_idx_for_lines(pred_img, line_class_names, img_w, max_diff=.25):
+def add_page_idx_for_lines(
+    pred_img, line_class_names, img_w, pages_clust_dist=.25
+):
     """Add page indexes for each contours in the pred_img-dict.
     Page is predicted using K-Means via line polygons.
 
@@ -47,6 +49,8 @@ def add_page_idx_for_lines(pred_img, line_class_names, img_w, max_diff=.25):
         pred_img (dict): The dictionary with predictions.
         line_class_names (list): The list of line class names.
         img_w (int): The image width.
+        pages_clust_dist (float): Relative (to image width) distance between two
+            clusters of lines' polygons to consider that image has two pages.
     """
     x_coords = []
     indexes = []
@@ -58,7 +62,7 @@ def add_page_idx_for_lines(pred_img, line_class_names, img_w, max_diff=.25):
 
     kmeans = KMeans(n_clusters=2, random_state=0).fit(
         np.array(x_coords).reshape(-1, 1))
-    if is_two_pages(kmeans.cluster_centers_, img_w, max_diff):
+    if is_two_pages(kmeans.cluster_centers_, img_w, pages_clust_dist):
         if is_page_switched(kmeans.cluster_centers_):
             page_indexes = [0 if page == 1 else 1 for page in kmeans.labels_]
         else:
