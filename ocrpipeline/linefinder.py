@@ -302,7 +302,8 @@ def get_structured_text(pred_img, word_class_names):
 
 
 def add_word_indexes(pred_img, word_class_names):
-    """Add word indexes to pred json.
+    """Add positional indexes for word contours. Using this index structured
+    text can be extracted from the prediction.
 
     Args:
         pred_img (dict): The dictionary with predictions with page_idx,

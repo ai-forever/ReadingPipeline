@@ -455,11 +455,10 @@ class PipelinePredictor:
                             'page_idx': int, The page index of the polygon.
                             'line_idx': int, The line index of the polygon within given page.
                             'column_idx': int, The column index of the polygon within
-                                given line and page. The value exists only for text
-                                classes that intersect the lines.
-                            'word_idx': int, The order index of the word polygon within
-                                given line and page. The value exists only for text
-                                classes that intersect the lines.
+                                given line and page.
+                            'word_idx': int, The positional index of the text polygons.
+                                Using this index structured text can be extracted
+                                from the prediction.
                         },
                         ...
                     ]
