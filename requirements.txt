@@ -1,9 +1,5 @@
 numpy==1.20.3
-
---find-links https://download.pytorch.org/whl/torch_stable.html
-torch==1.9.0+cu111
-torchvision==0.10.0+cu111
-
+torch>=1.6.0
 opencv-python==4.5.2.52
 pandas==1.2.3
 tqdm==4.62.3
@@ -16,3 +12,5 @@ Pillow==8.3.2
 pyclipper==1.3.0
 shapely==1.8.0
 ipywidgets==7.6.5
+ocrmodel @ git+https://github.com/ai-forever/OCR-model
+segmmodel @ git+https://github.com/ai-forever/SEGM-model

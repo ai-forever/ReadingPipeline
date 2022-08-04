@@ -10,11 +10,11 @@ The provided [Dockerfile](Dockerfile) is supplied to build an image with CUDA su
 ### Preparations
 
 - Clone the repo.
-- cd OCR-pipeline/
-- Clone the [SEGM-model](https://github.com/sberbank-ai/SEGM-model) and [OCR-model](https://github.com/sberbank-ai/OCR-model) to the OCR-pipeline folder.
 - Download weights and config-files of segmentation and OCR models to the `data/` folder.
 - `sudo make all` to build a docker image and create a container.
    Or `sudo make all GPUS=device=0 CPUS=10` if you want to specify gpu devices and limit CPU-resources.
+
+If you don't want to use Docker, you can install dependencies via requirements.txt
 
 ## Configuring the model
 

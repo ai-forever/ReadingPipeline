@@ -17,6 +17,12 @@ RUN apt-get update &&\
 # Upgrade pip for cv package instalation
 RUN pip3 install --upgrade pip==21.0.1
 
+# Install PyTorch
+RUN pip3 install --no-cache-dir \
+    torch==1.9.0+cu111 \
+    torchvision==0.10.0+cu111 \
+    -f https://download.pytorch.org/whl/torch_stable.html
+
 ENV PYTHONPATH $PYTHONPATH:/workdir
 ENV TORCH_HOME=/workdir/data/.torch
 ENV LANG C.UTF-8
@@ -26,9 +32,3 @@ WORKDIR /workdir
 # Install python ML packages
 COPY requirements.txt /workdir
 RUN pip3 install --no-cache-dir -r requirements.txt
-
-# Install OCR and SEGM models as libraries
-COPY OCR-model /workdir/OCR-model
-RUN cd OCR-model && python setup.py install
-COPY SEGM-model /workdir/SEGM-model
-RUN cd SEGM-model && python setup.py install
