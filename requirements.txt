@@ -1,14 +1,12 @@
-numpy==1.20.3
+numpy==1.21.4
 torch>=1.6.0
-opencv-python==4.5.2.52
+opencv-python==4.5.4
 tqdm==4.62.3
 pudb==2021.1
-scikit-learn==0.24.1
-matplotlib==3.4.2
-notebook==6.4.0
-Pillow==9.0.0
+scikit-learn==1.0.1
+matplotlib==3.5.0
+Pillow==8.4.0
 pyclipper==1.3.0
 shapely==1.8.0
-ipywidgets==7.6.5
 ocrmodel @ git+https://github.com/ai-forever/OCR-model
 segmmodel @ git+https://github.com/ai-forever/SEGM-model
