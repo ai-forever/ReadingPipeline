@@ -1,6 +1,6 @@
 numpy==1.21.4
 torch>=1.6.0
-opencv-python==4.5.4
+opencv-python==4.6.0.66
 tqdm==4.62.3
 pudb==2021.1
 scikit-learn==1.0.1
