@@ -7,6 +7,12 @@
 
 The provided [Dockerfile](Dockerfile) is supplied to build an image with CUDA support and cuDNN.
 
+### Models
+
+[Weights for Peter dataset](https://huggingface.co/sberbank-ai/ReadingPipeline-Peter)
+
+[Weights for school notebooks dataset](https://huggingface.co/sberbank-ai/ReadingPipeline-tetradi)
+
 ### Preparations
 
 - Clone the repo.
