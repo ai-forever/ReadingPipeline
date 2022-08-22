@@ -1,4 +1,7 @@
-# Pipeline of segmentation and OCR models
+# Reading Pipeline
+
+This is a pipeline for text reading. It combines the [OCR](https://github.com/ai-forever/OCR-model) and [Segmentation](https://github.com/ai-forever/SEGM-model) models into a single pipeline and allows to segment an input image, than crop text regions from it and, finally, read these texts using OCR.
+
 
 ## Quick setup and start
 
