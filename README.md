@@ -12,9 +12,9 @@ The provided [Dockerfile](Dockerfile) is supplied to build an image with CUDA su
 
 ### Models
 
-[Weights for Peter dataset](https://huggingface.co/sberbank-ai/ReadingPipeline-Peter)
+[Weights for Peter dataset](https://huggingface.co/sberbank-ai/ReadingPipeline-Peter), and [Peter dataset](https://huggingface.co/datasets/sberbank-ai/Peter)
 
-[Weights for school notebooks dataset](https://huggingface.co/sberbank-ai/ReadingPipeline-tetradi)
+[Weights for school notebooks dataset](https://huggingface.co/sberbank-ai/ReadingPipeline-tetradi), and [school notebooks dataset](https://huggingface.co/datasets/sberbank-ai/school_notebooks_RU)
 
 ### Preparations
 
