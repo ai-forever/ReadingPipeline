@@ -60,13 +60,22 @@ def add_page_idx_for_lines(
             x_coords.append(contour_center[0])
             indexes.append(idx)
 
-    kmeans = KMeans(n_clusters=2, random_state=0).fit(
-        np.array(x_coords).reshape(-1, 1))
-    if is_two_pages(kmeans.cluster_centers_, img_w, pages_clust_dist):
+    enough_polygons = True
+    if len(x_coords) < 2:
+        enough_polygons = False
+
+    if enough_polygons:
+        kmeans = KMeans(n_clusters=2, random_state=0).fit(
+            np.array(x_coords).reshape(-1, 1))
+
+    if (
+        enough_polygons
+        and is_two_pages(kmeans.cluster_centers_, img_w, pages_clust_dist)
+    ):
         if is_page_switched(kmeans.cluster_centers_):
             page_indexes = [0 if page == 1 else 1 for page in kmeans.labels_]
         else:
-            # int() to make json serializable # int() to make json serializable
+            # int() to make json serializable
             page_indexes = [int(page) for page in kmeans.labels_]
     else:  # only one page on the image
         page_indexes = [0 for i in range(len(indexes))]
