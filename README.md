@@ -1,4 +1,7 @@
-# Pipeline of segmentation and OCR models
+# Reading Pipeline
+
+This is a pipeline for text reading. It combines the [OCR](https://github.com/ai-forever/OCR-model) and [Segmentation](https://github.com/ai-forever/SEGM-model) models into a single pipeline and allows to segment an input image, than crop text regions from it and, finally, read these texts using OCR.
+
 
 ## Quick setup and start
 
@@ -9,9 +12,9 @@ The provided [Dockerfile](Dockerfile) is supplied to build an image with CUDA su
 
 ### Models
 
-[Weights for Peter dataset](https://huggingface.co/sberbank-ai/ReadingPipeline-Peter)
+[Weights for Peter dataset](https://huggingface.co/sberbank-ai/ReadingPipeline-Peter), and [Peter dataset](https://huggingface.co/datasets/sberbank-ai/Peter)
 
-[Weights for school notebooks dataset](https://huggingface.co/sberbank-ai/ReadingPipeline-tetradi)
+[Weights for school notebooks dataset](https://huggingface.co/sberbank-ai/ReadingPipeline-tetradi), and [school notebooks dataset](https://huggingface.co/datasets/sberbank-ai/school_notebooks_RU)
 
 ### Preparations
 
