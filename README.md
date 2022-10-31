@@ -12,9 +12,13 @@ The provided [Dockerfile](Dockerfile) is supplied to build an image with CUDA su
 
 ### Models
 
-[Weights for Peter dataset](https://huggingface.co/sberbank-ai/ReadingPipeline-Peter), and [Peter dataset](https://huggingface.co/datasets/sberbank-ai/Peter)
+[Weights for reading manuscripts of Peter the Great](https://huggingface.co/sberbank-ai/ReadingPipeline-Peter), and [Peter dataset](https://huggingface.co/datasets/sberbank-ai/Peter)
 
-[Weights for school notebooks dataset](https://huggingface.co/sberbank-ai/ReadingPipeline-tetradi), and [school notebooks dataset](https://huggingface.co/datasets/sberbank-ai/school_notebooks_RU)
+[Weights for reading school notebooks](https://huggingface.co/sberbank-ai/ReadingPipeline-notebooks), and [notebooks dataset](https://huggingface.co/datasets/sberbank-ai/school_notebooks_RU)
+
+### Demo
+
+[There](https://huggingface.co/spaces/sberbank-ai/PeterRecognition) you can find demo of ReadingPipeline model on Peter the Great handwritings.
 
 ### Preparations
 
