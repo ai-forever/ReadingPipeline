@@ -161,7 +161,7 @@ class SegmPrediction:
         )
 
     def __call__(self, image, pred_img):
-        pred_img = self.segm_predictor(image)
+        pred_img = self.segm_predictor([image])[0]
         return image, pred_img
 
 
