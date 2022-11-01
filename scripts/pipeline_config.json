@@ -5,7 +5,8 @@
         "SegmPrediction": {
             "model_path": "",
             "config_path": "",
-            "device": "cuda"
+            "device": "cuda",
+            "onnx": false
         },
         "RestoreImageAngle": {
             "restoring_class_names": ["text_line"]
@@ -15,24 +16,19 @@
             "model_path": "",
             "config_path": "",
             "lm_path": "",
-            "classes_to_ocr": ["shrinked_pupil_text", "shrinked_comments"],
-            "device": "cuda"
+            "classes_to_ocr": ["text"],
+            "device": "cuda",
+            "batch_size": 64,
+            "onnx": false
         },
         "LineFinder": {
             "line_classes": ["text_line"],
-            "text_classes": ["shrinked_pupil_text", "shrinked_comments"]
+            "text_classes": ["text"]
         },
         "PrepareJSON": {}
     },
     "classes": {
-        "shrinked_pupil_text": {
-            "contour_posptrocess": {
-                "BboxFromContour": {},
-                "UpscaleBbox": {"upscale_bbox": [1.4, 2.3]},
-                "CropByBbox": {}
-            }
-        },
-        "shrinked_comments": {
+        "text": {
             "contour_posptrocess": {
                 "BboxFromContour": {},
                 "UpscaleBbox": {"upscale_bbox": [1.4, 2.3]},
