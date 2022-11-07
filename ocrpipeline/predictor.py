@@ -152,10 +152,14 @@ def rotate_image(mat, angle):
 
 
 class SegmPrediction:
-    def __init__(self, pipeline_config, model_path, config_path, device, onnx):
+    def __init__(
+        self, pipeline_config, model_path, num_threads,
+        config_path, device, onnx
+    ):
         self.segm_predictor = SegmPredictor(
             model_path=model_path,
             config_path=config_path,
+            num_threads=num_threads,
             device=device,
             onnx=onnx
         )
@@ -181,13 +185,14 @@ class PrepareJSON:
 
 class OCRPrediction:
     def __init__(
-        self, pipeline_config, model_path, config_path, lm_path,
-        classes_to_ocr, device, batch_size, onnx
+        self, pipeline_config, model_path, config_path, num_threads,
+        lm_path, classes_to_ocr, device, batch_size, onnx
     ):
         self.classes_to_ocr = classes_to_ocr
         self.ocr_predictor = OcrPredictor(
             model_path=model_path,
             config_path=config_path,
+            num_threads=num_threads,
             lm_path=lm_path,
             device=device,
             batch_size=batch_size,

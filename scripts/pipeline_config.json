@@ -5,6 +5,7 @@
         "SegmPrediction": {
             "model_path": "",
             "config_path": "",
+            "num_threads": 8,
             "device": "cuda",
             "onnx": false
         },
@@ -16,6 +17,7 @@
             "model_path": "",
             "config_path": "",
             "lm_path": "",
+            "num_threads": 8,
             "classes_to_ocr": ["text"],
             "device": "cuda",
             "batch_size": 64,
