@@ -1,7 +1,14 @@
 # Reading Pipeline
 
-This is a pipeline for text reading. It combines the [OCR](https://github.com/ai-forever/OCR-model) and [Segmentation](https://github.com/ai-forever/SEGM-model) models into a single pipeline and allows to segment an input image, than crop text regions from it and, finally, read these texts using OCR.
+This is a pipeline for text detection and reading. It combines the [OCR](https://github.com/ai-forever/OCR-model) and [Segmentation](https://github.com/ai-forever/SEGM-model) models into the single pipeline and allows to segment an input image, then crop text regions from it and, finally, read these texts using OCR.
 
+### Models
+
+[Weights for reading manuscripts of Peter the Great](https://huggingface.co/sberbank-ai/ReadingPipeline-Peter), and [Peter dataset](https://huggingface.co/datasets/sberbank-ai/Peter)
+
+### Demo
+
+[There](https://huggingface.co/spaces/sberbank-ai/PeterRecognition) you can find a demo of the ReadingPipeline for the handwritten dataset of Peter the Great.
 
 ## Quick setup and start
 
@@ -10,17 +17,7 @@ This is a pipeline for text reading. It combines the [OCR](https://github.com/ai
 
 The provided [Dockerfile](Dockerfile) is supplied to build an image with CUDA support and cuDNN.
 
-### Models
-
-[Weights for reading manuscripts of Peter the Great](https://huggingface.co/sberbank-ai/ReadingPipeline-Peter), and [Peter dataset](https://huggingface.co/datasets/sberbank-ai/Peter)
-
-[Weights for reading school notebooks](https://huggingface.co/sberbank-ai/ReadingPipeline-notebooks), and [notebooks dataset](https://huggingface.co/datasets/sberbank-ai/school_notebooks_RU)
-
-### Demo
-
-[There](https://huggingface.co/spaces/sberbank-ai/PeterRecognition) you can find demo of ReadingPipeline model on Peter the Great handwritings.
-
-### Preparations
+## Preparations
 
 - Clone the repo.
 - Download weights and config-files of segmentation and OCR models to the `data/` folder.
@@ -31,13 +28,13 @@ If you don't want to use Docker, you can install dependencies via requirements.t
 
 ## Configuring the model
 
-You can change parameters of the pipeline in the [pipeline_config.json](scripts/pipeline_config.json) (or make a copy of the file).
+You can change parameters of the pipeline in the [pipeline_config.json](scripts/pipeline_config.json).
 
 ### Main pipeline loop
 
-The main_process-dict defines the order of the main processing methods and models that make up the pipeline loop. Classes are initialized with the parameters specified in the config, and are called one after the other in the order that is defined in the config.
+The `main_process`-dict defines the order of the main processing methods that make up the pipeline loop. Classes are initialized with the parameters specified in the config, and are called one after the other in the predefined order.
 
-PipelinePredictor - the class responsible for assembling the pipeline, and is located in [ocrpipeline/predictor.py](ocrpipeline/predictor.py). To add a new class to the pipeline, you need to add it to the `MAIN_PROCESS_DICT` dictionary in [ocrpipeline/predictor.py](ocrpipeline/predictor.py) and also specify it in the main_process-dict in the config at the point in the chain in which the class should be called.
+PipelinePredictor - the class responsible for assembling the pipeline, and is located in [ocrpipeline/predictor.py](ocrpipeline/predictor.py). To add a new class to the pipeline, you need to add it to the `MAIN_PROCESS_DICT` dictionary in [ocrpipeline/predictor.py](ocrpipeline/predictor.py) and also specify it in the `main_process`-dict in the config at the point in the chain from which the class should be called.
 
 ```
 "main_process": {
@@ -45,16 +42,37 @@ PipelinePredictor - the class responsible for assembling the pipeline, and is lo
     "RestoreImageAngle": {...},
     "ClassContourPosptrocess": {...},
     "OCRPrediction": {...},
+    "LineFinder": {...},
+    ...
 }
 ```
 
+### Models runtime, ONNX
+
+You can specify runtime method for OCR and segmentation models.
+
+```
+"main_process": {
+    "SegmPrediction": {
+        "model_path": "/path/to/model.ckpt",
+        "config_path": "/path/to/config.json",
+        "num_threads": 8,
+        "device": "cuda",
+        "runtime": "Pytorch"  # here you can choose runtime method
+    },
+    ...
+}
+```
+
+You can choose runtime methor from "Pytorch" (cuda and cpu devices), "ONNX" (only cpu is allowed) or "OpenVino" (only cpu).
+
 ### Class specific parameters
 
-Parameters in the classes-dict are set individually for each class. The names of the classes must correspond to the prediction class names of the segmentation model.
+Parameters in the `classes`-dict are set individually for each class. The names of the classes must correspond to the class names of the segmentation model.
 
-The contour_posprocess-dict defines the order of the contour processing, predicted by the segmentation model. Classes are initialized with the parameters specified in the config, and are called one after the other in the order that is defined in the config.
+The `contour_posprocess`-dict defines the order of the contour processing, predicted by the segmentation model. Classes are initialized with the parameters specified in the config, and are called one after the other in the predefined order.
 
-ClassContourPosptrocess is the class responsible for assembling and calling contour_posptrocess methods, and is located in [ocrpipeline/predictor.py](ocrpipeline/predictor.py). To add a new class to the pipeline, you need to add it to the `CONTOUR_PROCESS_DICT` dictionary in [ocrpipeline/predictor.py](ocrpipeline/predictor.py) and also specify it in the contour_posprocess-dict in the config at the point in the chain in which the class should be called.
+`ClassContourPosptrocess` is the class responsible for assembling and calling `contour_posptrocess` methods, and is located in [ocrpipeline/predictor.py](ocrpipeline/predictor.py). To add a new class to the pipeline, you need to add it to the `CONTOUR_PROCESS_DICT` dictionary in [ocrpipeline/predictor.py](ocrpipeline/predictor.py) and also specify it in the `contour_posprocess`-dict in the config at the point in the chain from which the class should be called.
 
 ```
 "classes": {
@@ -70,7 +88,7 @@ ClassContourPosptrocess is the class responsible for assembling and calling cont
 
 ## Inference
 
-An example of using the model can be found in [inference_pipeline.ipynb](scripts/inference_pipeline.ipynb).
+An example of model inference can be found in [inference_pipeline.ipynb](scripts/inference_pipeline.ipynb).
 
-To evaluate the accuracy of text recognition (OCR prediction when combined with segmentation model), you can use [evaluate](scripts/evaluate.py) script (you first need to generate model predictions, an example in [inference_pipeline_on_dataset.ipynb](scripts/inference_pipeline_on_dataset.ipynb)).
+To evaluate the pipeline accuracy (the OCR-model combined with the SEGM-model), you can use [evaluate](scripts/evaluate.py) script (you first need to generate model predictions, an example in [inference_pipeline_on_dataset.ipynb](scripts/inference_pipeline_on_dataset.ipynb)).
 
