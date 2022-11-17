@@ -26,7 +26,7 @@ The provided [Dockerfile](Dockerfile) is supplied to build an image with CUDA su
 
 If you don't want to use Docker, you can install dependencies via requirements.txt
 
-## Configuring the model
+## Configuring the pipeline
 
 You can change parameters of the pipeline in the [pipeline_config.json](scripts/pipeline_config.json).
 
@@ -58,13 +58,13 @@ You can specify runtime method for OCR and segmentation models.
         "config_path": "/path/to/config.json",
         "num_threads": 8,
         "device": "cuda",
-        "runtime": "Pytorch"  # here you can choose runtime method
+        "runtime": "Pytorch"  # here you can chose runtime method
     },
     ...
 }
 ```
 
-You can choose runtime methor from "Pytorch" (cuda and cpu devices), "ONNX" (only cpu is allowed) or "OpenVino" (only cpu).
+You can chose runtime methor from several options: "Pytorch" (cuda and cpu devices), "ONNX" (only cpu is allowed) or "OpenVino" (only cpu).
 
 ### Class specific parameters
 
