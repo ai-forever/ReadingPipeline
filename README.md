@@ -64,7 +64,7 @@ You can specify runtime method for OCR and segmentation models.
 }
 ```
 
-You can chose runtime methor from several options: "Pytorch" (cuda and cpu devices), "ONNX" (only cpu is allowed) or "OpenVino" (only cpu).
+You can chose runtime method from several options: "Pytorch" (cuda and cpu devices), "ONNX" (only cpu is allowed) or "OpenVino" (only cpu).
 
 ### Class specific parameters
 
