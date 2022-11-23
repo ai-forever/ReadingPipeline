@@ -2,13 +2,15 @@
 
 This is a pipeline for text detection and reading. It combines the [OCR](https://github.com/ai-forever/OCR-model) and [Segmentation](https://github.com/ai-forever/SEGM-model) models into the single pipeline and allows to segment an input image, then crop text regions from it and, finally, read these texts using OCR.
 
+## Demo
+
+[There](https://huggingface.co/spaces/sberbank-ai/PeterRecognition) you can find a web demo of the ReadingPipeline for the handwritten dataset of Peter the Great
+
+Also there is a [demo-ReadPipeline.ipynb](scripts/demo-ReadPipeline.ipynb) with demo usage of ReadingPipeline (you can run it in your Google Collab).
+
 ### Models
 
 [Weights for reading manuscripts of Peter the Great](https://huggingface.co/sberbank-ai/ReadingPipeline-Peter), and [Peter dataset](https://huggingface.co/datasets/sberbank-ai/Peter)
-
-### Demo
-
-[There](https://huggingface.co/spaces/sberbank-ai/PeterRecognition) you can find a demo of the ReadingPipeline for the handwritten dataset of Peter the Great.
 
 ## Quick setup and start
 
