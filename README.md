@@ -6,7 +6,7 @@ This is a pipeline for text detection and reading. It combines the [OCR](https:/
 
 A [web demo](https://huggingface.co/spaces/sberbank-ai/PeterRecognition) (on hugging face) of ReadingPipeline for the Peter the Great dataset.
 
-Also there is a [demo-ReadPipeline.ipynb](scripts/demo-ReadPipeline.ipynb) with demo usage of ReadingPipeline (you can run it in your Google Colab).
+Also there is a [demo](scripts/ReadPipeline-GoogleColab.ipynb) with an example of using the ReadingPipeline (you can run it in your Google Colab).
 
 ### Models
 
