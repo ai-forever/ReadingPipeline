@@ -4,13 +4,15 @@ This is a pipeline for text detection and reading. It combines the [OCR](https:/
 
 ## Demo
 
-A [web demo](https://huggingface.co/spaces/sberbank-ai/PeterRecognition) (on hugging face) of ReadingPipeline for the Peter the Great dataset.
+A [web demo](https://huggingface.co/spaces/sberbank-ai/PeterRecognition) (on hugging face) of ReadingPipeline for the Peter the Great dataset and [web demo](https://huggingface.co/spaces/sberbank-ai/NotebooksRecognition) for recognition school notebook dataset.
 
 Also there is a [demo](scripts/ReadPipeline-GoogleColab.ipynb) with an example of using the ReadingPipeline (you can run it in your Google Colab).
 
 ### Models
 
 [Weights for reading manuscripts of Peter the Great](https://huggingface.co/sberbank-ai/ReadingPipeline-Peter), and [Peter dataset](https://huggingface.co/datasets/sberbank-ai/Peter)
+
+[Weights for reading school notebooks handwritten dataset](https://huggingface.co/sberbank-ai/ReadingPipeline-notebooks), and school notebook datasets itself: [RU data](https://huggingface.co/datasets/sberbank-ai/school_notebooks_RU) and [EN data](https://huggingface.co/datasets/sberbank-ai/school_notebooks_EN)
 
 ## Quick setup and start
 
